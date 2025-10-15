@@ -3,7 +3,14 @@ import { NotionAPI } from "notion-client";
 import { parsePageId } from "notion-utils";
 import type { HomeGatewayItem } from "@/types/homegateway";
 
-const notion = new NotionAPI();
+// Create a new instance for each request to avoid caching issues
+function getNotionClient() {
+  return new NotionAPI({
+    activeUser: undefined,
+    authToken: undefined,
+    userTimeZone: 'Asia/Shanghai',
+  });
+}
 
 // Helper function to extract text from Notion property
 function extractText(propertyData: any[]): string {
@@ -25,6 +32,10 @@ function extractBoolean(propertyData: any[]): boolean {
   }
   return value === "Yes" || value === true || value === "TRUE" || value === "FALSE";
 }
+
+// Disable caching for this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,7 +60,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch the page content including database blocks
-    const recordMap = await notion.getPage(normalizedPageId);
+    // Create a new client instance to avoid caching
+    const notion = getNotionClient();
+
+    // Force fresh data by adding timestamp to bypass cache
+    const recordMap = await notion.getPage(normalizedPageId, {
+      fetchCollections: true,
+      signFileUrls: false,
+      chunkLimit: 100,
+      chunkNumber: 0,
+    });
 
     // Extract collection (database) data from the record map
     const collections = recordMap.collection || {};
@@ -125,11 +145,19 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: items,
       count: items.length,
+      timestamp: new Date().toISOString(),
     });
+
+    // Add cache control headers to prevent caching
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
   } catch (error: any) {
     console.error("Notion API Error:", error);
     return NextResponse.json(
