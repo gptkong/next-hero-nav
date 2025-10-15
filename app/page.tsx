@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Table,
   TableHeader,
@@ -15,7 +15,12 @@ import { Spinner } from "@heroui/spinner";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 import { ButtonGroup } from "@heroui/button";
-import { LayoutGrid, List } from "lucide-react";
+import { Divider } from "@heroui/divider";
+import { Tooltip } from "@heroui/tooltip";
+import { Badge } from "@heroui/badge";
+import { Skeleton } from "@heroui/skeleton";
+import { Input } from "@heroui/input";
+import { LayoutGrid, List, RefreshCw, Search, Wifi, WifiOff } from "lucide-react";
 import type { HomeGatewayItem } from "@/types/homegateway";
 import { title } from "@/components/primitives";
 import { useNetwork } from "@/contexts/NetworkContext";
@@ -27,6 +32,14 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [layout, setLayout] = useState<LayoutType>("card");
+  const [filterValue, setFilterValue] = useState("");
+  const [sortDescriptor, setSortDescriptor] = useState<{
+    column: keyof HomeGatewayItem;
+    direction: "ascending" | "descending";
+  }>({
+    column: "Name",
+    direction: "ascending",
+  });
   const { networkType } = useNetwork();
 
   const fetchData = async () => {
@@ -52,15 +65,42 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // 过滤和排序数据
+  const filteredAndSortedData = useMemo(() => {
+    let filtered = [...data];
+
+    // 过滤
+    if (filterValue) {
+      filtered = filtered.filter((item) =>
+        item.Name.toLowerCase().includes(filterValue.toLowerCase()) ||
+        item.IP.toLowerCase().includes(filterValue.toLowerCase()) ||
+        item.Hardware.toLowerCase().includes(filterValue.toLowerCase())
+      );
+    }
+
+    // 排序
+    if (sortDescriptor.column) {
+      filtered.sort((a, b) => {
+        const first = a[sortDescriptor.column];
+        const second = b[sortDescriptor.column];
+        const cmp = first < second ? -1 : first > second ? 1 : 0;
+
+        return sortDescriptor.direction === "descending" ? -cmp : cmp;
+      });
+    }
+
+    return filtered;
+  }, [data, filterValue, sortDescriptor]);
+
   const columns = [
-    { key: "Name", label: "名称" },
-    { key: "IP", label: "IP地址" },
-    { key: "Internet", label: "互联网访问" },
-    { key: "localAddr", label: "本地地址" },
-    { key: "BasicAuth", label: "基础认证" },
-    { key: "Status", label: "状态" },
-    { key: "Virtualization", label: "虚拟化" },
-    { key: "Hardware", label: "硬件" },
+    { key: "Name", label: "名称", sortable: true },
+    { key: "IP", label: "IP地址", sortable: true },
+    { key: "Internet", label: "互联网访问", sortable: false },
+    { key: "localAddr", label: "本地地址", sortable: false },
+    { key: "BasicAuth", label: "基础认证", sortable: false },
+    { key: "Status", label: "状态", sortable: true },
+    { key: "Virtualization", label: "虚拟化", sortable: true },
+    { key: "Hardware", label: "硬件", sortable: true },
   ];
 
   const renderCell = (item: HomeGatewayItem, columnKey: keyof HomeGatewayItem) => {
@@ -131,23 +171,24 @@ export default function Home() {
 
   const renderCardView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {data.map((item) => {
+      {filteredAndSortedData.map((item) => {
         const url = getCardUrl(item);
         return (
           <Card
             key={item.Name}
             isPressable
             isHoverable
-            className="w-full transition-all hover:scale-105"
+            shadow="sm"
+            className="w-full transition-all hover:shadow-md"
             as={url ? "a" : "div"}
             href={url || undefined}
             target={url ? "_blank" : undefined}
             rel={url ? "noopener noreferrer" : undefined}
           >
-            <CardHeader className="flex justify-between items-start pb-2">
-              <div className="flex flex-col gap-1 flex-1">
-                <h3 className="text-lg font-bold">{item.Name}</h3>
-                <div className="flex gap-2 items-center flex-wrap">
+            <CardHeader className="flex justify-between items-start pb-3">
+              <div className="flex flex-col gap-2 flex-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-foreground">{item.Name}</h3>
                   <Chip
                     color={item.Status === "启用" ? "success" : "danger"}
                     size="sm"
@@ -155,47 +196,64 @@ export default function Home() {
                   >
                     {item.Status}
                   </Chip>
+                </div>
+                <div className="flex gap-2 items-center flex-wrap">
                   {item.BasicAuth && (
-                    <Chip
-                      color="warning"
-                      size="sm"
-                      variant="flat"
-                    >
+                    <Chip color="warning" size="sm" variant="flat">
                       需认证
+                    </Chip>
+                  )}
+                  {item.Virtualization && (
+                    <Chip color="secondary" size="sm" variant="flat">
+                      {item.Virtualization}
                     </Chip>
                   )}
                 </div>
               </div>
             </CardHeader>
-            <CardBody className="py-3 gap-3">
-              <div className="flex flex-col gap-2 text-sm">
+            <Divider />
+            <CardBody className="py-4 gap-3">
+              <div className="flex flex-col gap-3 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-default-500">IP:</span>
-                  <span className="font-medium text-xs">{item.IP}</span>
+                  <span className="text-default-500 font-medium">IP:</span>
+                  <code className="text-xs bg-default-100 px-2 py-1 rounded">{item.IP}</code>
                 </div>
-                {item.Virtualization && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-default-500">虚拟化:</span>
-                    <Chip color="secondary" size="sm" variant="flat">
-                      {item.Virtualization}
-                    </Chip>
-                  </div>
-                )}
                 <div className="flex justify-between items-center">
-                  <span className="text-default-500">硬件:</span>
-                  <Chip color="primary" size="sm" variant="flat">
+                  <span className="text-default-500 font-medium">硬件:</span>
+                  <Chip color="primary" size="sm" variant="bordered">
                     {item.Hardware}
                   </Chip>
                 </div>
               </div>
             </CardBody>
-            <CardFooter className="pt-2 border-t border-divider">
-              <div className="flex items-center gap-2 text-xs text-default-500">
-                <span className="flex items-center gap-1">
-                  <span className={`w-2 h-2 rounded-full ${url ? 'bg-success' : 'bg-danger'}`} />
-                  {networkType === "internet" ? "外网" : "内网"}
-                  {url ? "可访问" : "不可用"}
-                </span>
+            <Divider />
+            <CardFooter className="py-3">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2 text-xs text-default-500">
+                  {url ? (
+                    <Wifi className="w-4 h-4 text-success" />
+                  ) : (
+                    <WifiOff className="w-4 h-4 text-danger" />
+                  )}
+                  <span>
+                    {networkType === "internet" ? "外网" : "内网"}
+                    {url ? "可访问" : "不可用"}
+                  </span>
+                </div>
+                {url && (
+                  <Button
+                    as="a"
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="sm"
+                    color="primary"
+                    variant="light"
+                    className="min-w-unit-16"
+                  >
+                    访问
+                  </Button>
+                )}
               </div>
             </CardFooter>
           </Card>
@@ -207,19 +265,27 @@ export default function Home() {
   const renderListView = () => (
     <Table
       aria-label="Home Gateway 服务列表"
+      sortDescriptor={sortDescriptor}
+      onSortChange={(descriptor: any) => setSortDescriptor(descriptor)}
       classNames={{
-        wrapper: "shadow-none",
-        th: "bg-default-100 text-default-600",
+        wrapper: "shadow-sm",
+        th: "bg-default-100 text-default-700 font-semibold",
+        td: "text-default-600",
       }}
+      selectionMode="none"
     >
       <TableHeader columns={columns}>
         {(column) => (
-          <TableColumn key={column.key} align="start">
+          <TableColumn
+            key={column.key}
+            align="start"
+            allowsSorting={column.sortable}
+          >
             {column.label}
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody items={data} emptyContent="暂无数据">
+      <TableBody items={filteredAndSortedData} emptyContent="暂无数据">
         {(item) => (
           <TableRow key={item.Name}>
             {(columnKey) => (
@@ -236,58 +302,192 @@ export default function Home() {
   if (error) {
     return (
       <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-        <Card className="max-w-2xl">
-          <CardHeader>
-            <h1 className={title({ color: "red" })}>错误</h1>
+        <Card className="max-w-2xl" shadow="md">
+          <CardHeader className="flex gap-3">
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold text-danger">加载失败</h1>
+              <p className="text-small text-default-500">请检查网络连接或稍后重试</p>
+            </div>
           </CardHeader>
+          <Divider />
           <CardBody>
-            <p className="text-danger mb-4">{error}</p>
-            <Button color="primary" onClick={fetchData}>
-              重试
-            </Button>
+            <div className="flex flex-col gap-4">
+              <div className="bg-danger-50 dark:bg-danger-100/10 p-4 rounded-lg">
+                <p className="text-danger text-sm">{error}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  color="primary"
+                  startContent={<RefreshCw className="w-4 h-4" />}
+                  onClick={fetchData}
+                >
+                  重新加载
+                </Button>
+              </div>
+            </div>
           </CardBody>
         </Card>
       </section>
     );
   }
 
+  const renderSkeletonCards = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {[...Array(8)].map((_, index) => (
+        <Card key={index} className="w-full" shadow="sm">
+          <CardHeader className="flex justify-between items-start pb-2">
+            <div className="flex flex-col gap-2 flex-1">
+              <Skeleton className="w-3/4 rounded-lg">
+                <div className="h-5 rounded-lg bg-default-300"></div>
+              </Skeleton>
+              <div className="flex gap-2">
+                <Skeleton className="w-16 rounded-lg">
+                  <div className="h-5 rounded-lg bg-default-200"></div>
+                </Skeleton>
+                <Skeleton className="w-16 rounded-lg">
+                  <div className="h-5 rounded-lg bg-default-200"></div>
+                </Skeleton>
+              </div>
+            </div>
+          </CardHeader>
+          <Divider />
+          <CardBody className="py-3 gap-3">
+            <div className="flex flex-col gap-2">
+              <Skeleton className="w-full rounded-lg">
+                <div className="h-4 rounded-lg bg-default-200"></div>
+              </Skeleton>
+              <Skeleton className="w-full rounded-lg">
+                <div className="h-4 rounded-lg bg-default-200"></div>
+              </Skeleton>
+              <Skeleton className="w-full rounded-lg">
+                <div className="h-4 rounded-lg bg-default-200"></div>
+              </Skeleton>
+            </div>
+          </CardBody>
+          <Divider />
+          <CardFooter className="pt-2">
+            <Skeleton className="w-24 rounded-lg">
+              <div className="h-4 rounded-lg bg-default-200"></div>
+            </Skeleton>
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+
   return (
     <section className="flex flex-col gap-4 py-2 md:py-4">
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-default-500">
-          共 {data.length} 条记录
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+        <div className="flex items-center gap-4">
+          <Badge
+            content={filteredAndSortedData.length}
+            color="primary"
+            size="md"
+            showOutline={false}
+            shape="rectangle"
+          >
+            <div className="text-sm text-default-600 font-medium px-3 py-1.5 bg-default-100 rounded-lg">
+              服务总数
+            </div>
+          </Badge>
+          {filterValue && (
+            <Chip
+              size="sm"
+              variant="flat"
+              onClose={() => setFilterValue("")}
+              color="secondary"
+            >
+              已过滤 {filteredAndSortedData.length}/{data.length}
+            </Chip>
+          )}
         </div>
-        <ButtonGroup size="sm" variant="bordered">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Input
+            isClearable
+            placeholder="搜索服务..."
+            value={filterValue}
+            onValueChange={setFilterValue}
+            startContent={<Search className="w-4 h-4 text-default-400" />}
+            size="sm"
+            variant="bordered"
+            className="max-w-xs"
+            classNames={{
+              input: "text-sm",
+              inputWrapper: "h-10"
+            }}
+          />
+          <ButtonGroup size="sm" variant="bordered">
+            <Button
+              color={layout === "card" ? "primary" : "default"}
+              variant={layout === "card" ? "solid" : "bordered"}
+              onClick={() => setLayout("card")}
+              isIconOnly
+              aria-label="卡片视图"
+            >
+              <LayoutGrid size={16} />
+            </Button>
+            <Button
+              color={layout === "list" ? "primary" : "default"}
+              variant={layout === "list" ? "solid" : "bordered"}
+              onClick={() => setLayout("list")}
+              isIconOnly
+              aria-label="列表视图"
+            >
+              <List size={16} />
+            </Button>
+          </ButtonGroup>
           <Button
-            color={layout === "card" ? "primary" : "default"}
-            variant={layout === "card" ? "solid" : "bordered"}
-            onClick={() => setLayout("card")}
             isIconOnly
-            aria-label="卡片视图"
+            size="sm"
+            variant="bordered"
+            onClick={fetchData}
+            isLoading={loading}
+            aria-label="刷新数据"
           >
-            <LayoutGrid size={16} />
+            <RefreshCw className="w-4 h-4" />
           </Button>
-          <Button
-            color={layout === "list" ? "primary" : "default"}
-            variant={layout === "list" ? "solid" : "bordered"}
-            onClick={() => setLayout("list")}
-            isIconOnly
-            aria-label="列表视图"
-          >
-            <List size={16} />
-          </Button>
-        </ButtonGroup>
+        </div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <Spinner size="lg" label="加载中..." />
-        </div>
+        layout === "card" ? (
+          renderSkeletonCards()
+        ) : (
+          <div className="flex justify-center items-center py-20">
+            <Spinner size="lg" label="加载中..." color="primary" />
+          </div>
+        )
+      ) : filteredAndSortedData.length === 0 ? (
+        <Card className="w-full" shadow="sm">
+          <CardBody className="py-10">
+            <div className="flex flex-col items-center justify-center gap-3">
+              <div className="text-default-400">
+                <Search className="w-12 h-12" />
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-semibold text-default-600">未找到匹配的服务</p>
+                <p className="text-sm text-default-400 mt-1">
+                  {filterValue ? '尝试使用不同的搜索词' : '暂无服务数据'}
+                </p>
+              </div>
+              {filterValue && (
+                <Button
+                  size="sm"
+                  color="primary"
+                  variant="flat"
+                  onClick={() => setFilterValue("")}
+                >
+                  清除搜索
+                </Button>
+              )}
+            </div>
+          </CardBody>
+        </Card>
       ) : layout === "card" ? (
         renderCardView()
       ) : (
-        <Card className="w-full">
-          <CardBody className="p-0">{renderListView()}</CardBody>
+        <Card className="w-full" shadow="sm">
+          <CardBody className="p-0 overflow-x-auto">{renderListView()}</CardBody>
         </Card>
       )}
     </section>
