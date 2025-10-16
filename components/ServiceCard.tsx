@@ -47,19 +47,31 @@ export default function ServiceCard({
     }
   };
 
+  const handleCopyUrlClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleCopyUrl();
+  };
+
+  const handleAccessServiceClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (url) onPress(url);
+  };
+
   const handleCardPress = () => {
     triggerHaptic('medium');
     if (url) onPress(url);
   };
 
   return (
-    <Card
-      isPressable={!!url}
-      isHoverable
-      shadow="sm"
-      className="w-full transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] group"
-      onPress={handleCardPress}
+    <div
+      className={`w-full transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] group ${url ? 'cursor-pointer' : ''}`}
+      onClick={url ? handleCardPress : undefined}
     >
+      <Card
+        isHoverable
+        shadow="sm"
+        className="w-full"
+      >
       {/* 卡片头部 - 主要信息 */}
       <CardHeader className="pb-2 px-3 pt-3 sm:pb-3 sm:px-4 sm:pt-6">
         <div className="flex flex-col gap-1.5 sm:gap-2 w-full">
@@ -123,6 +135,7 @@ export default function ServiceCard({
                 variant="solid"
                 startContent={<ExternalLink className="w-3 h-3" />}
                 onPress={() => onPress(url)}
+                onClick={handleAccessServiceClick}
                 className="flex-1"
               >
                 访问服务
@@ -133,6 +146,7 @@ export default function ServiceCard({
               size="sm"
               variant="flat"
               onPress={handleCopyUrl}
+              onClick={handleCopyUrlClick}
               disabled={!url}
               className="shrink-0 min-w-unit-8 h-unit-8"
               aria-label="复制访问链接"
@@ -154,5 +168,6 @@ export default function ServiceCard({
         </div>
       </CardBody>
     </Card>
+    </div>
   );
 }
