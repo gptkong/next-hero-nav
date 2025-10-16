@@ -2,6 +2,10 @@
 
 一个基于 Next.js 和 Notion 数据库的家庭网关服务管理系统，提供直观的界面来管理和监控家庭网络中的各种服务。
 
+## 🚀 一键部署到 Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/gptkong/next-hero-nav&env=NOTION_PAGE_ID&envDescription=请输入您的Notion页面ID&envLink=https://www.notion.so/your-page-id)
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-15.3.1-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.6.3-blue)
@@ -111,6 +115,7 @@ next-hero-nav/
 ├── public/                # 静态资源
 ├── .env.local.example     # 环境变量示例
 ├── NOTION_SETUP.md        # Notion 配置指南
+├── VERCEL_DEPLOYMENT.md   # Vercel 部署指南
 └── README.md              # 项目说明
 ```
 
@@ -221,6 +226,42 @@ npm run build
 # 启动生产服务器
 npm run start
 ```
+
+### Vercel 部署
+
+本项目支持一键部署到 Vercel 平台：
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/gptkong/next-hero-nav)
+
+详细部署步骤请参考 [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) 文档。
+
+#### 快速部署步骤
+
+1. **准备 Notion 数据**
+   - 复制 Notion 模板：https://flower-hide-2a1.notion.site/28ea6d8650b4802b8dd8de251b6db52e?v=28ea6d8650b4818cbb0f000c4b3335d9&source=copy_link
+   - 获取页面 ID 并确保页面已公开分享
+
+2. **Fork 项目**
+   - 访问：https://github.com/gptkong/next-hero-nav
+   - Fork 到您的 GitHub 账户
+
+3. **部署到 Vercel**
+   - 点击上方的"Deploy with Vercel"按钮
+   - 导入您 fork 的仓库
+   - 配置环境变量 `NOTION_PAGE_ID`
+   - 完成部署
+
+#### 环境变量配置
+
+在 Vercel 项目设置中添加以下环境变量：
+
+```
+NOTION_PAGE_ID=your-notion-page-id-here
+```
+
+#### 自定义域名
+
+部署后，您可以在 Vercel 项目设置中配置自定义域名，Vercel 会自动提供 SSL 证书。
 
 ### 代码规范
 
