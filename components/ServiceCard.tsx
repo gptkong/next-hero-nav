@@ -61,9 +61,9 @@ export default function ServiceCard({
       onPress={handleCardPress}
     >
       {/* 卡片头部 - 主要信息 */}
-      <CardHeader className="pb-2 px-3 pt-3 sm:pb-3 sm:px-6 sm:pt-6">
+      <CardHeader className="pb-2 px-3 pt-3 sm:pb-3 sm:px-4 sm:pt-6">
         <div className="flex flex-col gap-1.5 sm:gap-2 w-full">
-          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 w-full">
             <h3 className="text-sm sm:text-base sm:text-lg font-bold text-foreground truncate">
               {item.Name}
             </h3>
@@ -79,7 +79,7 @@ export default function ServiceCard({
         </div>
       </CardHeader>
 
-      <CardBody className="pt-0 pb-3 px-3 sm:pb-4 sm:px-4 sm:pb-6">
+      <CardBody className="pt-0 pb-3 px-3 sm:pb-6 sm:px-4">
         <div className="flex flex-col gap-2 sm:gap-3">
           {/* 系统信息区域 */}
           <div className="flex flex-wrap gap-1 sm:gap-2">
