@@ -76,45 +76,45 @@ export default function ServiceCard({
       onPress={handleCardPress}
     >
       {/* 卡片头部 - 主要信息 */}
-      <CardHeader className="pb-3 px-4 pt-4 sm:px-6 sm:pt-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 w-full">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <h3 className="text-base sm:text-lg font-bold text-foreground truncate">
+      <CardHeader className="pb-2 px-3 pt-3 sm:pb-3 sm:px-6 sm:pt-6">
+        <div className="flex flex-col gap-1.5 sm:gap-2 w-full">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+            <h3 className="text-sm sm:text-base sm:text-lg font-bold text-foreground truncate">
               {item.Name}
             </h3>
             <Chip
               color={item.Status === "启用" ? "success" : "danger"}
               size="sm"
               variant="dot"
-              className="shrink-0"
+              className="shrink-0 text-xs"
             >
               {item.Status}
             </Chip>
           </div>
 
-          {/* 认证状态指示器 */}
+          {/* 认证状态指示器 - 移动端简化显示 */}
           {item.BasicAuth && (
             <Chip
               color="warning"
               size="sm"
               variant="flat"
               startContent={<Shield className="w-3 h-3" />}
-              className="shrink-0"
+              className="shrink-0 text-xs w-fit"
             >
-              需要认证
+              需认证
             </Chip>
           )}
         </div>
       </CardHeader>
 
-      <CardBody className="pt-0 pb-4 px-4 sm:px-6 sm:pb-6">
-        <div className="flex flex-col gap-3">
+      <CardBody className="pt-0 pb-3 px-3 sm:pb-4 sm:px-4 sm:pb-6">
+        <div className="flex flex-col gap-2 sm:gap-3">
           {/* 网络信息区域 */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2 p-2 bg-default-50 dark:bg-default-100/10 rounded-lg">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                <Server className="w-4 h-4 text-default-400 shrink-0" />
-                <span className="text-sm font-mono text-default-600 truncate">
+          <div className="flex flex-col gap-1.5 sm:gap-2">
+            <div className="flex items-center justify-between gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-default-50 dark:bg-default-100/10 rounded-lg">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                <Server className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-default-400 shrink-0" />
+                <span className="text-xs sm:text-sm font-mono text-default-600 truncate">
                   {item.IP}
                 </span>
               </div>
@@ -123,10 +123,10 @@ export default function ServiceCard({
                 size="sm"
                 variant="light"
                 onPress={handleCopyIP}
-                className="shrink-0 min-w-unit-8 h-unit-8"
+                className="shrink-0 min-w-unit-7 h-unit-7 sm:min-w-unit-8 sm:h-unit-8"
                 aria-label="复制IP地址"
               >
-                <Copy className={`w-3 h-3 transition-colors ${
+                <Copy className={`w-2.5 h-2.5 sm:w-3 sm:h-3 transition-colors ${
                   copySuccess === "IP" ? "text-success" : "text-default-400"
                 }`} />
               </Button>
@@ -134,7 +134,7 @@ export default function ServiceCard({
           </div>
 
           {/* 系统信息区域 */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1 sm:gap-2">
             {item.Virtualization && (
               <Chip
                 color="secondary"
@@ -185,10 +185,10 @@ export default function ServiceCard({
           </div>
 
           {/* 移动端提示 */}
-          <div className="sm:hidden text-center mt-2">
+          <div className="sm:hidden text-center mt-1.5">
             {url && (
               <p className="text-xs text-default-400">
-                点击卡片访问服务
+                点击访问
               </p>
             )}
           </div>

@@ -184,13 +184,12 @@ export default function Home() {
 
   const renderCardView = useMemo(() => (
     <div className="grid
-      grid-cols-1           /* xs: 默认单列 */
-      sm:grid-cols-2        /* sm: 小屏双列 */
-      md:grid-cols-2        /* md: 中屏双列 */
+      grid-cols-2           /* xs: 默认双列 */
+      md:grid-cols-3        /* md: 中屏三列 */
       lg:grid-cols-3        /* lg: 大屏三列 */
       xl:grid-cols-4        /* xl: 超大屏四列 */
       2xl:grid-cols-5       /* 2xl: 超超大屏五列 */
-      gap-3 sm:gap-4        /* 响应式间距 */
+      gap-2 sm:gap-3        /* 响应式间距 */
     ">
       {filteredAndSortedData.map((item) => {
         const url = getCardUrl(item);
@@ -279,13 +278,12 @@ export default function Home() {
 
   const renderSkeletonCards = useMemo(() => (
     <div className="grid
-      grid-cols-1           /* xs: 默认单列 */
-      sm:grid-cols-2        /* sm: 小屏双列 */
-      md:grid-cols-2        /* md: 中屏双列 */
+      grid-cols-2           /* xs: 默认双列 */
+      md:grid-cols-3        /* md: 中屏三列 */
       lg:grid-cols-3        /* lg: 大屏三列 */
       xl:grid-cols-4        /* xl: 超大屏四列 */
       2xl:grid-cols-5       /* 2xl: 超超大屏五列 */
-      gap-3 sm:gap-4        /* 响应式间距 */
+      gap-2 sm:gap-3        /* 响应式间距 */
     ">
       {[...Array(10)].map((_, index) => (
         <ServiceCardSkeleton key={index} />
