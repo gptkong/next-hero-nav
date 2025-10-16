@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Table,
   TableHeader,
@@ -9,21 +9,21 @@ import {
   TableRow,
   TableCell,
 } from "@heroui/table";
-import { Card, CardBody, CardHeader, CardFooter } from "@heroui/card";
+import { Card, CardBody } from "@heroui/card";
 import { Chip } from "@heroui/chip";
 import { Spinner } from "@heroui/spinner";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 import { ButtonGroup } from "@heroui/button";
-import { Divider } from "@heroui/divider";
-import { Tooltip } from "@heroui/tooltip";
 import { Badge } from "@heroui/badge";
 import { Skeleton } from "@heroui/skeleton";
 import { Input } from "@heroui/input";
-import { LayoutGrid, List, RefreshCw, Search, Wifi, WifiOff } from "lucide-react";
+import { LayoutGrid, List, RefreshCw, Search } from "lucide-react";
 import type { HomeGatewayItem } from "@/types/homegateway";
 import { title } from "@/components/primitives";
 import { useNetwork } from "@/contexts/NetworkContext";
+import ServiceCard from "@/components/ServiceCard";
+import ServiceCardSkeleton from "@/components/ServiceCardSkeleton";
 
 type LayoutType = "card" | "list";
 
@@ -69,12 +69,10 @@ export default function Home() {
   const filteredAndSortedData = useMemo(() => {
     let filtered = [...data];
 
-    // 过滤
+    // 过滤 - 只搜索服务名称
     if (filterValue) {
       filtered = filtered.filter((item) =>
-        item.Name.toLowerCase().includes(filterValue.toLowerCase()) ||
-        item.IP.toLowerCase().includes(filterValue.toLowerCase()) ||
-        item.Hardware.toLowerCase().includes(filterValue.toLowerCase())
+        item.Name.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
 
@@ -165,87 +163,29 @@ export default function Home() {
     }
   };
 
-  const getCardUrl = (item: HomeGatewayItem) => {
+  const getCardUrl = useCallback((item: HomeGatewayItem) => {
     return networkType === "internet" ? item.Internet : item.localAddr;
-  };
+  }, [networkType]);
 
-  const renderCardView = () => (
+  const handleCardPress = useCallback((url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }, []);
+
+  const renderCardView = useMemo(() => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {filteredAndSortedData.map((item) => {
         const url = getCardUrl(item);
         return (
-          <Card
+          <ServiceCard
             key={item.Name}
-            isPressable={!!url}
-            isHoverable
-            shadow="sm"
-            className="w-full transition-all hover:shadow-md"
-            onPress={() => {
-              if (url) {
-                window.open(url, '_blank', 'noopener,noreferrer');
-              }
-            }}
-          >
-            <CardHeader className="flex justify-between items-start pb-3">
-              <div className="flex flex-col gap-2 flex-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-foreground">{item.Name}</h3>
-                  <Chip
-                    color={item.Status === "启用" ? "success" : "danger"}
-                    size="sm"
-                    variant="dot"
-                  >
-                    {item.Status}
-                  </Chip>
-                </div>
-                <div className="flex gap-2 items-center flex-wrap">
-                  {item.BasicAuth && (
-                    <Chip color="warning" size="sm" variant="flat">
-                      需认证
-                    </Chip>
-                  )}
-                  {item.Virtualization && (
-                    <Chip color="secondary" size="sm" variant="flat">
-                      {item.Virtualization}
-                    </Chip>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <Divider />
-            <CardBody className="py-4 gap-3">
-              <div className="flex flex-col gap-3 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-default-500 font-medium">IP:</span>
-                  <code className="text-xs bg-default-100 px-2 py-1 rounded">{item.IP}</code>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-default-500 font-medium">硬件:</span>
-                  <Chip color="primary" size="sm" variant="bordered">
-                    {item.Hardware}
-                  </Chip>
-                </div>
-              </div>
-            </CardBody>
-            <Divider />
-            <CardFooter className="py-3">
-              <div className="flex items-center gap-2 text-xs text-default-500">
-                {url ? (
-                  <Wifi className="w-4 h-4 text-success" />
-                ) : (
-                  <WifiOff className="w-4 h-4 text-danger" />
-                )}
-                <span>
-                  {networkType === "internet" ? "外网" : "内网"}
-                  {url ? "可访问" : "不可用"}
-                </span>
-                </div>
-            </CardFooter>
-          </Card>
+            item={item}
+            url={url}
+            onPress={handleCardPress}
+          />
         );
       })}
     </div>
-  );
+  ), [filteredAndSortedData, getCardUrl, handleCardPress]);
 
   const renderListView = () => (
     <Table
@@ -316,49 +256,13 @@ export default function Home() {
     );
   }
 
-  const renderSkeletonCards = () => (
+  const renderSkeletonCards = useMemo(() => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {[...Array(8)].map((_, index) => (
-        <Card key={index} className="w-full" shadow="sm">
-          <CardHeader className="flex justify-between items-start pb-2">
-            <div className="flex flex-col gap-2 flex-1">
-              <Skeleton className="w-3/4 rounded-lg">
-                <div className="h-5 rounded-lg bg-default-300"></div>
-              </Skeleton>
-              <div className="flex gap-2">
-                <Skeleton className="w-16 rounded-lg">
-                  <div className="h-5 rounded-lg bg-default-200"></div>
-                </Skeleton>
-                <Skeleton className="w-16 rounded-lg">
-                  <div className="h-5 rounded-lg bg-default-200"></div>
-                </Skeleton>
-              </div>
-            </div>
-          </CardHeader>
-          <Divider />
-          <CardBody className="py-3 gap-3">
-            <div className="flex flex-col gap-2">
-              <Skeleton className="w-full rounded-lg">
-                <div className="h-4 rounded-lg bg-default-200"></div>
-              </Skeleton>
-              <Skeleton className="w-full rounded-lg">
-                <div className="h-4 rounded-lg bg-default-200"></div>
-              </Skeleton>
-              <Skeleton className="w-full rounded-lg">
-                <div className="h-4 rounded-lg bg-default-200"></div>
-              </Skeleton>
-            </div>
-          </CardBody>
-          <Divider />
-          <CardFooter className="pt-2">
-            <Skeleton className="w-24 rounded-lg">
-              <div className="h-4 rounded-lg bg-default-200"></div>
-            </Skeleton>
-          </CardFooter>
-        </Card>
+        <ServiceCardSkeleton key={index} />
       ))}
     </div>
-  );
+  ), []);
 
   return (
     <section className="flex flex-col gap-4 py-2 md:py-4">
@@ -436,7 +340,7 @@ export default function Home() {
 
       {loading ? (
         layout === "card" ? (
-          renderSkeletonCards()
+          renderSkeletonCards
         ) : (
           <div className="flex justify-center items-center py-20">
             <Spinner size="lg" label="加载中..." color="primary" />
@@ -469,7 +373,7 @@ export default function Home() {
           </CardBody>
         </Card>
       ) : layout === "card" ? (
-        renderCardView()
+        renderCardView
       ) : (
         <Card className="w-full" shadow="sm">
           <CardBody className="p-0 overflow-x-auto">{renderListView()}</CardBody>
