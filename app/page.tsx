@@ -9,7 +9,8 @@ import {
   TableRow,
   TableCell,
 } from "@heroui/table";
-import { Card, CardBody } from "@heroui/card";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Divider } from "@heroui/divider";
 import { Chip } from "@heroui/chip";
 import { Spinner } from "@heroui/spinner";
 import { Button } from "@heroui/button";
@@ -171,8 +172,26 @@ export default function Home() {
     window.open(url, '_blank', 'noopener,noreferrer');
   }, []);
 
+  const handleCopyIP = useCallback((ip: string) => {
+    // 可以添加 Toast 提示或其他反馈
+    console.log("IP地址已复制:", ip);
+  }, []);
+
+  const handleCopyUrl = useCallback((url: string) => {
+    // 可以添加 Toast 提示或其他反馈
+    console.log("访问链接已复制:", url);
+  }, []);
+
   const renderCardView = useMemo(() => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid
+      grid-cols-1           /* xs: 默认单列 */
+      sm:grid-cols-2        /* sm: 小屏双列 */
+      md:grid-cols-2        /* md: 中屏双列 */
+      lg:grid-cols-3        /* lg: 大屏三列 */
+      xl:grid-cols-4        /* xl: 超大屏四列 */
+      2xl:grid-cols-5       /* 2xl: 超超大屏五列 */
+      gap-3 sm:gap-4        /* 响应式间距 */
+    ">
       {filteredAndSortedData.map((item) => {
         const url = getCardUrl(item);
         return (
@@ -181,11 +200,13 @@ export default function Home() {
             item={item}
             url={url}
             onPress={handleCardPress}
+            onCopyIP={handleCopyIP}
+            onCopyUrl={handleCopyUrl}
           />
         );
       })}
     </div>
-  ), [filteredAndSortedData, getCardUrl, handleCardPress]);
+  ), [filteredAndSortedData, getCardUrl, handleCardPress, handleCopyIP, handleCopyUrl]);
 
   const renderListView = () => (
     <Table
@@ -257,8 +278,16 @@ export default function Home() {
   }
 
   const renderSkeletonCards = useMemo(() => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {[...Array(8)].map((_, index) => (
+    <div className="grid
+      grid-cols-1           /* xs: 默认单列 */
+      sm:grid-cols-2        /* sm: 小屏双列 */
+      md:grid-cols-2        /* md: 中屏双列 */
+      lg:grid-cols-3        /* lg: 大屏三列 */
+      xl:grid-cols-4        /* xl: 超大屏四列 */
+      2xl:grid-cols-5       /* 2xl: 超超大屏五列 */
+      gap-3 sm:gap-4        /* 响应式间距 */
+    ">
+      {[...Array(10)].map((_, index) => (
         <ServiceCardSkeleton key={index} />
       ))}
     </div>
