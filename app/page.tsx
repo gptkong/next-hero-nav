@@ -176,14 +176,15 @@ export default function Home() {
         return (
           <Card
             key={item.Name}
-            isPressable
+            isPressable={!!url}
             isHoverable
             shadow="sm"
             className="w-full transition-all hover:shadow-md"
-            as={url ? "a" : "div"}
-            href={url || undefined}
-            target={url ? "_blank" : undefined}
-            rel={url ? "noopener noreferrer" : undefined}
+            onPress={() => {
+              if (url) {
+                window.open(url, '_blank', 'noopener,noreferrer');
+              }
+            }}
           >
             <CardHeader className="flex justify-between items-start pb-3">
               <div className="flex flex-col gap-2 flex-1">
@@ -228,33 +229,17 @@ export default function Home() {
             </CardBody>
             <Divider />
             <CardFooter className="py-3">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2 text-xs text-default-500">
-                  {url ? (
-                    <Wifi className="w-4 h-4 text-success" />
-                  ) : (
-                    <WifiOff className="w-4 h-4 text-danger" />
-                  )}
-                  <span>
-                    {networkType === "internet" ? "外网" : "内网"}
-                    {url ? "可访问" : "不可用"}
-                  </span>
-                </div>
-                {url && (
-                  <Button
-                    as="a"
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    size="sm"
-                    color="primary"
-                    variant="light"
-                    className="min-w-unit-16"
-                  >
-                    访问
-                  </Button>
+              <div className="flex items-center gap-2 text-xs text-default-500">
+                {url ? (
+                  <Wifi className="w-4 h-4 text-success" />
+                ) : (
+                  <WifiOff className="w-4 h-4 text-danger" />
                 )}
-              </div>
+                <span>
+                  {networkType === "internet" ? "外网" : "内网"}
+                  {url ? "可访问" : "不可用"}
+                </span>
+                </div>
             </CardFooter>
           </Card>
         );
